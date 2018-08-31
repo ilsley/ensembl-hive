@@ -247,7 +247,22 @@ sub estimate_num_required_workers {     # this 'max allowed' total includes the 
     my $self                = shift @_;
     my $remaining_job_count = shift @_ || 0;    # FIXME: a better estimate would be $self->claimed_job_count when it is introduced
 
-    my $num_required_workers = $self->ready_job_count + $remaining_job_count;   # this 'max' estimation can still be zero
+    # Work left to do
+    my $jobs_to_do = $self->ready_job_count + $remaining_job_count;
+
+    if ($self->inprogress_job_count < 0) {
+        # Race condition between multiple agents updating the stats
+        # inprogress_job_count is negative, so let's use num_running_workers instead and update ready_job_count accordingly
+        # NOTE: jobs_to_do may become negative ! We'll return 0, which should force a sync
+        $jobs_to_do += $self->inprogress_job_count - $self->num_running_workers;
+        # Equivalent to:
+        #$jobs_to_do = ($self->total_job_count - $self->semaphored_job_count - $self->done_job_count - $self->failed_job_count - $self->num_running_workers) + $remaining_job_count;
+    }
+
+    # We can assume jobs_to_do>0 i the rest of the function
+    return 0 if $jobs_to_do <= 0;
+
+    my $num_required_workers = $jobs_to_do;     # 1 worker per job
 
     my $h_cap = $self->analysis->hive_capacity;
     if( defined($h_cap) and $h_cap>=0) {  # what is the currently attainable maximum defined via hive_capacity?
