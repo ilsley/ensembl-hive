@@ -763,7 +763,7 @@ sub run_one_batch {
         $self->runnable_object->attempt( undef );   # release an extra reference to the job
         $attempt->runtime_msec( $job_stopwatch->get_elapsed );
         $attempt->query_count( $self->adaptor->db->dbc->query_count );
-        $attempt->adaptor->check_in_attempt($attempt, $job->died_somewhere ? 0 : 1);
+        $attempt->adaptor->record_attempt_completion($attempt, $job->died_somewhere ? 0 : 1);
 
         my $job_completion_line = "Job $job_id : ". ($job->died_somewhere ? 'died' : 'complete' );
 

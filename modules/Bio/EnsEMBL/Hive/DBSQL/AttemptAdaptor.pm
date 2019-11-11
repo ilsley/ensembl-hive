@@ -54,34 +54,47 @@ sub object_class {
 =head2 check_in_attempt
 
   Arg [1]    : Bio::EnsEMBL::Hive::Attempt $attempt
-  Arg [2]    : Boolean $finalize_attempt. Whether this is the last update of the attempt
-  Arg [2]    : Boolean $is_success: whether the attempt has successfully reached its end
-  Description: When $is_success is passed, the method understands this is the last update
-               and will finalize the attempt entry, writing end time and statistics such
-               as runtime_msec and query_count.
+  Description: Update the status of an attempt and the when_updated timestamp.
 
 =cut
 
 sub check_in_attempt {
+    my ($self, $attempt) = @_;
+
+    my $attempt_id = $attempt->dbID;
+
+    my $sql = "UPDATE attempt SET ";
+      $sql .= "status='".$attempt->status."'";
+      $sql .= ",when_updated=CURRENT_TIMESTAMP";
+      $sql .= " WHERE attempt_id='$attempt_id' ";
+
+    $self->dbc->do($sql);
+}
+
+
+=head2 record_attempt_completion
+
+  Arg [1]    : Bio::EnsEMBL::Hive::Attempt $attempt
+  Arg [2]    : Boolean $is_success: whether the attempt has successfully reached its end
+  Description: Finalize the attempt entry. Mark the attempt as complete (whether
+               successful or not) writing end time and statistics such as runtime_msec
+               and query_count.
+
+=cut
+
+sub record_attempt_completion {
     my ($self, $attempt, $is_success) = @_;
 
     my $attempt_id = $attempt->dbID;
 
     my $sql = "UPDATE attempt SET ";
-
-    if (defined $is_success) {
-        $sql .= "status='END'";
-        $sql .= ",when_updated=CURRENT_TIMESTAMP";
-        $sql .= ",when_ended=CURRENT_TIMESTAMP";
-        $sql .= ",is_success=$is_success";
-        $sql .= ",runtime_msec=".($attempt->runtime_msec//'NULL');
-        $sql .= ",query_count=".($attempt->query_count//'NULL');
-    } else {
-        $sql .= "status='".$attempt->status."'";
-        $sql .= ",when_updated=CURRENT_TIMESTAMP";
-    }
-
-    $sql .= " WHERE attempt_id='$attempt_id' ";
+      $sql .= "status='END'";
+      $sql .= ",when_updated=CURRENT_TIMESTAMP";
+      $sql .= ",when_ended=CURRENT_TIMESTAMP";
+      $sql .= ",is_success=$is_success";
+      $sql .= ",runtime_msec=".($attempt->runtime_msec//'NULL');
+      $sql .= ",query_count=".($attempt->query_count//'NULL');
+      $sql .= " WHERE attempt_id='$attempt_id' ";
 
     $self->dbc->do($sql);
 }
