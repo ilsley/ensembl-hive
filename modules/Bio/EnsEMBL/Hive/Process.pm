@@ -135,6 +135,11 @@ sub life_cycle {
 
         $job->set_and_update_status( 'IN_PROGRESS' );
 
+        # Cleanup the accu data the last attempt has generated
+        if ($job->adaptor and $job->attempt_count()>1 ) {
+            $job->adaptor->db->get_AccumulatorAdaptor->remove_all_by_sending_job_id($job->dbID);
+        }
+
         if( $self->can('pre_cleanup') and $job->attempt_count()>1 ) {
             $self->enter_status('PRE_CLEANUP');
             $self->pre_cleanup;
