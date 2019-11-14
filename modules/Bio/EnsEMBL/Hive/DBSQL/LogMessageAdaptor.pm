@@ -54,6 +54,15 @@ sub default_table_name {
 }
 
 
+=head2 store_attempt_message
+
+    Title   :  store_attempt_message
+    Function:  Add a new entry to the log_message table, by filling the fields from
+               the properties of the attempt (identified by its dbID).
+    Returns :  None
+
+=cut
+
 sub store_attempt_message {
     my ($self, $attempt_id, $msg, $message_class) = @_;
 

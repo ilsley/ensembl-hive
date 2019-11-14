@@ -154,6 +154,16 @@ sub autoflow {
 }
 
 
+=head2 create_new_attempt
+
+    Title   :  create_new_attempt
+    Function:  Create a new attempt for the given role on this job. If a database is
+               available (i.e. the job has an adaptor) the attempt will be stored and
+               and the job linked to it
+    Returns :  Bio::EnsEMBL::Hive::Attempt
+
+=cut
+
 sub create_new_attempt {
     my ($self, $role) = @_;
 

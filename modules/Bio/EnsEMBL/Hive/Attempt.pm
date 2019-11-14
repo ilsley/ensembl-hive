@@ -8,6 +8,9 @@
 
     An object to describe an attempt of a job.
     It is stored in its own table (attempt) indexed by a dbID, and is thus Storable
+    In this model, a job (AnalysisJob) is the fixed representation of a task, and
+    an attempt is a runtime instance of this job. A job may still be tried several
+    times (have multiple attempts) before finally succeeding.
 
 =head1 LICENSE
 
